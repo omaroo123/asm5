@@ -1,0 +1,19 @@
+// Sys.tst
+
+// Test Sys.xor
+push constant 12  // 00000000 00001100
+push constant 6   // 00000000 00000110
+call Sys.xor 2    // Expected: 00000000 00001010 (10 in decimal)
+
+// Test Sys.shiftLeft
+push constant 6   // 00000000 00000110
+push constant 2   // Shift left by 2
+call Sys.shiftLeft 2  // Expected: 00000000 00011000 (24 in decimal)
+
+// Test Sys.computeParity
+push constant 31  // 00000000 00011111
+call Sys.computeParity 1  // Expected: 1 (odd number of 1s)
+
+// Test Sys.encode
+push constant 31  // 00000000 00011111
+call Sys.encode 1  // Expected: 10000000 00011111 (parity bit set to 1)

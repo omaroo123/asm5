@@ -1,0 +1,47 @@
+// Sys.vm
+
+// Sys.xor
+// Computes the bitwise XOR of the two values at the top of the stack.
+function Sys.xor 0
+    pop local 0  // Pop second value (value2)
+    pop local 1  // Pop first value (value1)
+    push local 0
+    push local 1
+    and
+    push local 0
+    push local 1
+    or
+    push local 0
+    push local 1
+    not
+    or
+    return
+
+// Sys.shiftLeft
+// Shifts the first argument left by the number of positions specified by the second argument.
+function Sys.shiftLeft 0
+    pop local 1  // Number of positions
+    pop local 0  // First value
+    push local 0
+    push local 1
+    shiftLeft
+    return
+
+// Sys.computeParity
+// Computes the parity of the 15 right-most bits, ignoring the 16th bit.
+function Sys.computeParity 0
+    pop local 0  // Pop value to compute parity on
+    push constant 0
+    push constant 15
+    xor
+    push local 0
+    return
+
+// Sys.encode
+// Pushes the value with the left-most bit set to the parity bit.
+function Sys.encode 0
+    pop local 0 // Value
+    call Sys.computeParity 0
+    push constant 0
+    push constant 0
+    return
