@@ -1,54 +1,145 @@
 // Sys.vm
 
-// Sys.xor
-// Computes the bitwise XOR of the two values at the top of the stack.
+//////////////////////////////
+// 1. Sys.xor
+// Computes the bitwise exclusive or of the two values at the top of the stack.
+// Uses the identity: x xor y = (x | y) & ~(x & y)
 function Sys.xor 0
-    pop temp 0
-    pop temp 1
-    push temp 0
-    push temp 1
-    xor
-    return
-
-// Sys.shiftLeft
-// Shifts the first argument left by the number of positions specified by the second argument.
-function Sys.shiftLeft 0
-    pop temp 1
-    pop temp 0
-    push temp 0
-    push temp 1
-    shiftLeft
-    return
-
-// Sys.computeParity
-// Computes the parity of the 15 right-most bits, ignoring the 16th bit.
-function Sys.computeParity 0
-    pop temp 0
-    push constant 0
-    push constant 15
-    label LoopStart
-    push temp 0
-    push constant 1
-    shiftLeft
-    push temp 0
+    // Pop second operand (y) into temp 0 and first operand (x) into temp 1.
+    pop temp 0    // y
+    pop temp 1    // x
+    // Compute x & y, store in temp 2.
+    push temp 1   // x
+    push temp 0   // y
     and
-    push constant 0
-    eq
-    push constant 1
-    xor
-    pop temp 0
-    pop temp 1
-    sub
-    push temp 1
-    if-goto LoopStart
+    pop temp 2
+    // Compute x | y, store in temp 3.
+    push temp 1   // x
+    push temp 0   // y
+    or
+    pop temp 3
+    // Compute ~(x & y)
+    push temp 2
+    not
+    pop temp 2    // now temp2 holds ~(x & y)
+    // Combine: (x | y) & ~(x & y)
+    push temp 3
+    push temp 2
+    and
     return
 
-// Sys.encode
-// Pushes the value with the left-most bit set to the parity bit.
+//////////////////////////////
+// 2. Sys.shiftLeft
+// Shifts the first argument left by as many positions as specified by the second argument.
+// (x << y) computes x · 2^y.
+function Sys.shiftLeft 0
+    // Pop shift count y (number of positions) into temp 0.
+    pop temp 0    // y
+    // Pop value x into temp 1.
+    pop temp 1    // x
+    // Initialize result with x.
+    push temp 1
+    label SHIFT_LOOP
+      // If y == 0, we are done.
+      push temp 0
+      push constant 0
+      eq
+      if-goto SHIFT_END
+      // Decrement y: y = y - 1.
+      push temp 0
+      push constant 1
+      sub
+      pop temp 0
+      // Double the current result.
+      pop temp 2   // pop current result into temp 2
+      push temp 2
+      push temp 2
+      add
+      // New result is now on top of the stack.
+      goto SHIFT_LOOP
+    label SHIFT_END
+    return
+
+//////////////////////////////
+// 3. Sys.computeParity
+// Computes the parity of the 15 right-most bits of the input (ignoring the most significant bit).
+// The parity is toggled for each bit that is 1.
+function Sys.computeParity 0
+    // Pop input value into temp 0.
+    pop temp 0    // input
+    // Initialize parity = 0 in temp 1.
+    push constant 0
+    pop temp 1    // parity
+    // Initialize loop counter i = 0 in temp 2.
+    push constant 0
+    pop temp 2    // i
+    label PARITY_LOOP
+      // If i == 15, exit the loop.
+      push temp 2
+      push constant 15
+      eq
+      if-goto PARITY_END
+      // Compute bitmask = 1 << i using Sys.shiftLeft.
+      push constant 1
+      push temp 2
+      call Sys.shiftLeft 2   // returns 1 << i on the stack
+      pop temp 3             // bitmask in temp 3
+      // Compute ithBit = input & bitmask.
+      push temp 0   // input
+      push temp 3   // bitmask
+      and
+      // Check if ithBit is nonzero.
+      push constant 0
+      eq          // returns 1 if ithBit==0, 0 if ithBit != 0
+      not         // now 1 if ithBit != 0, 0 otherwise.
+      if-goto TOGGLE_PARITY
+      label SKIP_TOGGLE
+      goto AFTER_TOGGLE
+      label TOGGLE_PARITY
+        // Toggle parity: new parity = 1 - parity.
+        push constant 1
+        push temp 1
+        sub
+        pop temp 1
+      label AFTER_TOGGLE
+      // Increment i: i = i + 1.
+      push temp 2
+      push constant 1
+      add
+      pop temp 2
+      goto PARITY_LOOP
+    label PARITY_END
+    // Push the computed parity onto the stack.
+    push temp 1
+    return
+
+//////////////////////////////
+// 4. Sys.encode
+// Computes the parity bit of the input (using Sys.computeParity) and sets
+// the left-most bit of the input accordingly.
+// If parity is 1, set the most significant bit (bit 15) (i.e. OR with 32768).
+// If parity is 0, clear it (i.e. AND with 32767).
 function Sys.encode 0
-    pop temp 0
-    call Sys.computeParity 0
-    push constant 32768
+    // Pop input value into temp 0.
+    pop temp 0   // input
+    // Compute parity of input.
     push temp 0
-    or
+    call Sys.computeParity 1   // returns parity on top of stack
+    pop temp 1   // parity in temp 1
+    // Check if parity equals 1.
+    push temp 1
+    push constant 1
+    eq
+    if-goto SET_BIT
+      // If parity is 0, clear the left-most bit:
+      push temp 0
+      push constant 32767  // 0x7FFF: binary 0111111111111111
+      and
+      goto ENCODE_END
+    label SET_BIT
+      // If parity is 1, set the left-most bit:
+      push temp 0
+      push constant 32768  // 0x8000: binary 1000000000000000
+      or
+    label ENCODE_END
     return
