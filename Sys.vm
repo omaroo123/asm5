@@ -3,25 +3,18 @@
 // Sys.xor
 // Computes the bitwise XOR of the two values at the top of the stack.
 function Sys.xor 0
-    pop temp 0  // Pop second value (value2)
-    pop temp 1  // Pop first value (value1)
+    pop temp 0
+    pop temp 1
     push temp 0
     push temp 1
-    and
-    push temp 0
-    push temp 1
-    or
-    push temp 0
-    push temp 1
-    not
-    or
+    xor
     return
 
 // Sys.shiftLeft
 // Shifts the first argument left by the number of positions specified by the second argument.
 function Sys.shiftLeft 0
-    pop temp 1  // Number of positions
-    pop temp 0  // First value
+    pop temp 1
+    pop temp 0
     push temp 0
     push temp 1
     shiftLeft
@@ -30,18 +23,32 @@ function Sys.shiftLeft 0
 // Sys.computeParity
 // Computes the parity of the 15 right-most bits, ignoring the 16th bit.
 function Sys.computeParity 0
-    pop temp 0  // Pop value to compute parity on
+    pop temp 0
     push constant 0
     push constant 15
-    xor
+    label LoopStart
     push temp 0
+    push constant 1
+    shiftLeft
+    push temp 0
+    and
+    push constant 0
+    eq
+    push constant 1
+    xor
+    pop temp 0
+    pop temp 1
+    sub
+    push temp 1
+    if-goto LoopStart
     return
 
 // Sys.encode
 // Pushes the value with the left-most bit set to the parity bit.
 function Sys.encode 0
-    pop temp 0 // Value
+    pop temp 0
     call Sys.computeParity 0
-    push constant 0
-    push constant 0
+    push constant 32768
+    push temp 0
+    or
     return
