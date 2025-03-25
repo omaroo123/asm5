@@ -7,8 +7,7 @@
 // stack, so that, from the point of view of the callee, the
 // result is at the top of the stack.
 // Push to the stack the minimum of two arguments.
-//
-function Sys.min 0
+//function Sys.min 0
     // Your implementation goes here.
 
     push argument 0
