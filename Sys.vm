@@ -1,192 +1,106 @@
-/// COMPUTE THE MINIMUM OF TWO VALUES
-// This function takes two arguments and pushes the smaller of
-// them onto the stack. To call this function, you should:
-//   1. push two values onto the stack; and
-//   2. call this function with call Sys.min 2.
-// Before returning, the function pushes the result onto the
-// stack, so that, from the point of view of the callee, the
-// result is at the top of the stack.
-// Push to the stack the minimum of two arguments.
-//function Sys.min 0
-    // Your implementation goes here.
-
+// Sys.min implementation
+// Pushes the minimum of two arguments onto the stack
+function Sys.min 0
     push argument 0
     push argument 1
-    lt                // Compares: if (argument0 < argument1) then push  -1
-    if-goto RETURN_ARG0   // If true jump and return argument0 
-    push argument 1       // Else argument1 is the minimum
-    goto END 
-
+    lt                 // if argument0 < argument1, true (-1)
+    if-goto RETURN_ARG0
+    push argument 1    // else push argument1 (minimum)
+    goto END_MIN
 label RETURN_ARG0
-    push argument 0       // Return argument0 as the minimum
-    
-label END 
+    push argument 0    // push argument0 (minimum)
+label END_MIN
+    return
 
-    return 
-    
-
-
-
-
-//// COMPUTE THE MAXIMUM OF TWO VALUES
-// This function takes two arguments and pushes the larger of
-// them onto the stack. To call this function, you should:
-//   1. push two values onto the stack; and
-//   2. call this function with call Sys.max 2.
-// Before returning, the function pushes the result onto the
-// stack, so that, from the point of view of the callee, the
-// result is at the top of the stack.
-// Push to the stack the minimum of two arguments.
-//
+// Sys.max implementation
+// Pushes the maximum of two arguments onto the stack
 function Sys.max 0
-    // Your implementation goes here.
-    
     push argument 0
     push argument 1
-    lt                   // if (argument0 < argument1) then push true (-1)
-    if-goto RETURN_ARG1  // if true, jump to RETURN_ARG1 to return argument1
-    push argument 0      // otherwise, argument0 is the maximum
-    goto END 
+    gt                 // if argument0 > argument1, true (-1)
+    if-goto RETURN_ARG0
+    push argument 1    // else push argument1 (maximum)
+    goto END_MAX
+label RETURN_ARG0
+    push argument 0    // push argument0 (maximum)
+label END_MAX
+    return
 
-label RETURN_ARG1
-    push argument 1      // return argument1 as the maximum
-
-label END 
-
-    return 
-    
-    
-
-
-
-//// COMPUTE THE RANGE OF AN ARRAY.
-// This function takes two arguments, representing an array of
-// integers, and returns the range of the array onto the stack.
-// The two arguments are:
-//   ARG0 - memory location where the array starts, and
-//   ARG1 - number of elements in the array.
-// To call this function, you should:
-//   1. push the address of the first array elementonto the stack;
-//   2. push the number of array elements onto the stack; and
-//   2. call this function with call Sys.range 2.
-// Before returning, the function pushes the result onto the
-// stack, so that, from the point of view of the callee, the
-// result is at the top of the stack.
-//function Sys.range 2
-    // Your implementation goes here.
-
-    push argument 1 
-
-    push constant 1 
-
-    gt 
-
-    if-goto NOTZERO
-
-    push constant 0 
-
-    goto END 
-
-label NOTZERO
-
-    push argument 0 
-
-    pop pointer 0 
-
-    push this 0 
-
-    pop local 0 
-
-    push local 0
-
-    pop local 1 
-
-label minloop 
-
-    push pointer 0
-
-    push constant 1 
-
-    add
-
-    pop pointer 0 
-
-    push pointer 0
-
-    push argument 0 
-
+// Sys.range implementation
+// Computes the range (max - min) of an array
+// ARG0 - array base address
+// ARG1 - array length
+function Sys.range 2
     push argument 1
+    push constant 1
+    gt
+    if-goto RANGE_START
+    push constant 0
+    return             // If length <= 1, range is 0
 
-    add 
-
-    eq 
-
-    if-goto beforemaxloop
-
-    push local 0
-
+label RANGE_START
+    // Initialize min and max with first element
+    push argument 0
+    pop pointer 0
     push this 0
+    pop local 0        // local 0 = min
+    push this 0
+    pop local 1        // local 1 = max
 
+    push constant 1
+    pop local 2        // local 2 = index (start from 1)
+
+label RANGE_LOOP
+    push local 2
+    push argument 1
+    eq
+    if-goto RANGE_DONE // If index == length, done looping
+
+    push argument 0
+    push local 2
+    add
+    pop pointer 0
+    push this 0        // current element
+
+    // Update min
+    push local 0
+    push this 0
+    call Sys.min 2
+    pop local 0        // min = min(min, this[index])
+
+    // Update max
+    push local 1
+    push this 0
+    call Sys.max 2
+    pop local 1        // max = max(max, this[index])
+
+    // Increment index
+    push local 2
+    push constant 1
+    add
+    pop local 2
+
+    goto RANGE_LOOP
+
+label RANGE_DONE
+    // Compute max - min and return
+    push local 1       // max
+    push local 0       // min
+    sub
+    return
+
+// Sys.init implementation for testing
+function Sys.init 0
+    // Test min (expected result on stack: 2)
+    push constant 4
+    push constant 2
     call Sys.min 2
 
-    pop local 0 
+    // Test max (expected result on stack: 4)
+    push constant 4
+    push constant 2
+    call Sys.max 2
 
-    goto minloop 
-
-
-label beforemaxloop 
-
-    push argument 0 
-
-    pop pointer 0 
-
-label maxloop 
-
-    push pointer 0 
-
-    push constant 1 
-
-    add 
-
-    pop pointer 0 
-
-    push pointer 0 
-
-    push argument 0
-
-    push argument 1 
-
-    add 
-
-    eq 
-
-    if-goto RangeEnd
-
-    push local 1 
-
-    push this 0 
-
-    call Sys.max 2 
-
-    pop local 1 
-
-    goto maxloop 
-
-label RangeEnd
-
-    push local 1 
-
-    push local 0 
-
-    sub 
-
-label END 
-
-return
-
-    
-
-function Sys.init 0
-    call Sys.range 2
+    // Infinite loop to halt emulator
 label WHILE
-    goto WHILE
+    goto WHILE
