@@ -1,142 +1,197 @@
-// Sys.vm
+function Sys.min 0
+    // Your implementation goes here.
 
-//////////////////////////////
-// 1. Sys.xor
-// Computes the bitwise XOR of the two values at the top of the stack.
-// Uses the identity: x xor y = (x | y) & ~(x & y)
-function Sys.xor 0
-    // Pop the top two values: y is on top, then x.
-    pop temp 0      // temp 0 = y
-    pop temp 1      // temp 1 = x
-    // Compute x & y, store in temp 2.
-    push temp 1     // push x
-    push temp 0     // push y
-    and             // computes x & y
-    pop temp 2      // temp 2 = (x & y)
-    // Compute x | y, store in temp 3.
-    push temp 1     // push x
-    push temp 0     // push y
-    or              // computes x | y
-    pop temp 3      // temp 3 = (x | y)
-    // Compute ~(x & y)
-    push temp 2
-    not
-    pop temp 2      // now temp 2 = ~(x & y)
-    // Final result: (x | y) & ~(x & y) = x xor y.
-    push temp 3
-    push temp 2
-    and
-    return
+    push argument 0
+    push argument 1
+    lt                // Compares: if (argument0 < argument1) then push  -1
+    if-goto RETURN_ARG0   // If true jump and return argument0 
+    push argument 1       // Else argument1 is the minimum
+    goto END 
 
-//////////////////////////////
-// 2. Sys.shiftLeft
-// Shifts the first argument left by as many positions as specified by the second argument.
-// In other words, computes: x << y = x * 2^y.
-function Sys.shiftLeft 0
-    pop temp 0      // temp 0 = y (shift count)
-    pop temp 1      // temp 1 = x (value to shift)
-    // Initialize result = x in temp 2.
-    push temp 1
-    pop temp 2
-    label SHIFT_LOOP
-      // If y == 0, we're done.
-      push temp 0
-      push constant 0
-      eq
-      if-goto SHIFT_END
-      // Decrement y: y = y - 1.
-      push temp 0
-      push constant 1
-      sub
-      pop temp 0
-      // Double the result: result = result + result.
-      push temp 2
-      push temp 2
-      add
-      pop temp 2
-      goto SHIFT_LOOP
-    label SHIFT_END
-    push temp 2
-    return
+label RETURN_ARG0
+    push argument 0       // Return argument0 as the minimum
+    
+label END 
 
-//////////////////////////////
-// 3. Sys.computeParity
-// Computes the parity of the 15 rightmost bits of the input (ignoring the 16th bit).
-// For each of the lower 15 bits, toggle a parity bit if that bit is 1.
-function Sys.computeParity 0
-    pop temp 0      // temp 0 = input value
-    push constant 0
-    pop temp 1      // temp 1 = parity (initialize to 0)
-    push constant 0
-    pop temp 2      // temp 2 = loop counter i (initialize to 0)
-    label PARITY_LOOP
-      // If i equals 15, end the loop.
-      push temp 2
-      push constant 15
-      eq
-      if-goto PARITY_END
-      // Compute bitmask = 1 << i using Sys.shiftLeft.
-      push constant 1
-      push temp 2
-      call Sys.shiftLeft 2   // returns 1 << i on the stack
-      pop temp 3             // temp 3 = bitmask (1 shifted left by i)
-      // Compute ithBit = input & bitmask.
-      push temp 0    // input
-      push temp 3    // bitmask
-      and
-      // Check if (input & bitmask) is nonzero.
-      push constant 0
-      eq           // eq returns 1 if (input & bitmask)==0, 0 if nonzero.
-      not          // now returns 1 if (input & bitmask) != 0, 0 if it is 0.
-      if-goto TOGGLE_PARITY
-      // If the bit is 0, just increment i.
-      label SKIP_TOGGLE
-      push temp 2
-      push constant 1
-      add
-      pop temp 2
-      goto PARITY_LOOP
-      label TOGGLE_PARITY
-         // Toggle parity: parity = parity xor 1.
-         push temp 1
-         push constant 1
-         xor
-         pop temp 1
-         // Increment i.
-         push temp 2
-         push constant 1
-         add
-         pop temp 2
-         goto PARITY_LOOP
-    label PARITY_END
-    push temp 1
-    return
+    return 
+    
 
-//////////////////////////////
-// 4. Sys.encode
-// Encodes the input by computing its parity (via Sys.computeParity) and then
-// setting its most significant bit (bit 15) to that parity value.
-// If parity == 1, the MSB is set; if parity == 0, the MSB is cleared.
-function Sys.encode 0
-    pop temp 0    // temp 0 = input value
-    // Compute parity of the input.
-    push temp 0
-    call Sys.computeParity 1   // returns parity on the stack
-    pop temp 1    // temp 1 = computed parity
-    // Check if parity equals 1.
-    push temp 1
-    push constant 1
-    eq
-    if-goto SET_LEFT
-      // Parity is 0: clear the MSB by ANDing with 32767 (0x7FFF: 0111111111111111).
-      push temp 0
-      push constant 32767
-      and
-      goto END_ENCODE
-    label SET_LEFT
-      // Parity is 1: set the MSB by ORing with 32768 (0x8000: 1000000000000000).
-      push temp 0
-      push constant 32768
-      or
-    label END_ENCODE
-    return
+
+
+
+//// COMPUTE THE MAXIMUM OF TWO VALUES
+// This function takes two arguments and pushes the larger of
+// them onto the stack. To call this function, you should:
+//   1. push two values onto the stack; and
+//   2. call this function with call Sys.max 2.
+// Before returning, the function pushes the result onto the
+// stack, so that, from the point of view of the callee, the
+// result is at the top of the stack.
+// Push to the stack the minimum of two arguments.
+//
+function Sys.max 0
+    // Your implementation goes here.
+    
+    push argument 0
+    push argument 1
+    lt                   // if (argument0 < argument1) then push true (-1)
+    if-goto RETURN_ARG1  // if true, jump to RETURN_ARG1 to return argument1
+    push argument 0      // otherwise, argument0 is the maximum
+    goto END 
+
+label RETURN_ARG1
+    push argument 1      // return argument1 as the maximum
+
+label END 
+
+    return 
+    
+    
+
+
+
+//// COMPUTE THE RANGE OF AN ARRAY.
+// This function takes two arguments, representing an array of
+// integers, and returns the range of the array onto the stack.
+// The two arguments are:
+//   ARG0 - memory location where the array starts, and
+//   ARG1 - number of elements in the array.
+// To call this function, you should:
+//   1. push the address of the first array elementonto the stack;
+//   2. push the number of array elements onto the stack; and
+//   2. call this function with call Sys.range 2.
+// Before returning, the function pushes the result onto the
+// stack, so that, from the point of view of the callee, the
+// result is at the top of the stack.
+//
+function Sys.range 2
+    // Your implementation goes here.
+
+    push argument 1 
+
+    push constant 1 
+
+    gt 
+
+    if-goto NOTZERO
+
+    push constant 0 
+
+    goto END 
+
+label NOTZERO
+
+    push argument 0 
+
+    pop pointer 0 
+
+    push this 0 
+
+    pop local 0 
+
+    push local 0
+
+    pop local 1 
+
+label minloop 
+
+    push pointer 0
+
+    push constant 1 
+
+    add
+
+    pop pointer 0 
+
+    push pointer 0
+
+    push argument 0 
+
+    push argument 1
+
+    add 
+
+    eq 
+
+    if-goto beforemaxloop
+
+    push local 0
+
+    push this 0
+
+    call Sys.min 2
+
+    pop local 0 
+
+    goto minloop 
+
+
+label beforemaxloop 
+
+    push argument 0 
+
+    pop pointer 0 
+
+label maxloop 
+
+    push pointer 0 
+
+    push constant 1 
+
+    add 
+
+    pop pointer 0 
+
+    push pointer 0 
+
+    push argument 0
+
+    push argument 1 
+
+    add 
+
+    eq 
+
+    if-goto RangeEnd
+
+    push local 1 
+
+    push this 0 
+
+    call Sys.max 2 
+
+    pop local 1 
+
+    goto maxloop 
+
+label RangeEnd
+
+    push local 1 
+
+    push local 0 
+
+    sub 
+
+label END 
+
+return
+
+    
+
+
+
+// The emulator will start executing from here. You can modify
+// the code below while testing and debugging your code, but
+// please revert your changes before submitting to Gradescope;
+// otherwise, your submission will most likely fail all tests.
+//
+// A better way to test your code is to use the supplied file
+//   Sys.tst
+// with the virtual machine emulator. Please do not submit this
+// file to Gradescope, as this will cause your submission to be
+// rejected.
+//
+function Sys.init 0
+    call Sys.range 2
+label WHILE
+    goto WHILE
