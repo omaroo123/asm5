@@ -123,4 +123,4 @@ function Sys.init 0
     call Sys.encode 1
 
 label MAIN_LOOP
-    goto MAIN_LOOP
+    goto MAIN_LOOP
