@@ -1,126 +1,207 @@
-// XOR function: result = (a + b) - 2*(a & b)
-function Sys.xor 0
-    push argument 0
-    push argument 1
-    add
-    push argument 0
-    push argument 1
-    and
-    push argument 0
-    push argument 1
-    and
-    add
-    sub
-    return
+/// COMPUTE THE MINIMUM OF TWO VALUES
+// This function takes two arguments and pushes the smaller of
+// them onto the stack. To call this function, you should:
+//   1. push two values onto the stack; and
+//   2. call this function with call Sys.min 2.
+// Before returning, the function pushes the result onto the
+// stack, so that, from the point of view of the callee, the
+// result is at the top of the stack.
+// Push to the stack the minimum of two arguments.
+//
+function Sys.min 0
+    // Your implementation goes here.
 
-// Shift left function: result = x << y
-function Sys.shiftLeft 2
-    push argument 1
-    push constant 0
-    eq
-    if-goto NO_SHIFT_NEEDED  // if y == 0, return x
-
-    push constant 0
-    pop local 0  // i = 0 (counter)
     push argument 0
-    pop local 1  // result = x
+    push argument 1
+    lt                // Compares: if (argument0 < argument1) then push  -1
+    if-goto RETURN_ARG0   // If true jump and return argument0 
+    push argument 1       // Else argument1 is the minimum
+    goto END 
 
-label SHIFT_ITERATE
+label RETURN_ARG0
+    push argument 0       // Return argument0 as the minimum
+    
+label END 
+
+    return 
+    
+
+
+
+
+//// COMPUTE THE MAXIMUM OF TWO VALUES
+// This function takes two arguments and pushes the larger of
+// them onto the stack. To call this function, you should:
+//   1. push two values onto the stack; and
+//   2. call this function with call Sys.max 2.
+// Before returning, the function pushes the result onto the
+// stack, so that, from the point of view of the callee, the
+// result is at the top of the stack.
+// Push to the stack the minimum of two arguments.
+//
+function Sys.max 0
+    // Your implementation goes here.
+    
+    push argument 0
+    push argument 1
+    lt                   // if (argument0 < argument1) then push true (-1)
+    if-goto RETURN_ARG1  // if true, jump to RETURN_ARG1 to return argument1
+    push argument 0      // otherwise, argument0 is the maximum
+    goto END 
+
+label RETURN_ARG1
+    push argument 1      // return argument1 as the maximum
+
+label END 
+
+    return 
+    
+    
+
+
+
+//// COMPUTE THE RANGE OF AN ARRAY.
+// This function takes two arguments, representing an array of
+// integers, and returns the range of the array onto the stack.
+// The two arguments are:
+//   ARG0 - memory location where the array starts, and
+//   ARG1 - number of elements in the array.
+// To call this function, you should:
+//   1. push the address of the first array elementonto the stack;
+//   2. push the number of array elements onto the stack; and
+//   2. call this function with call Sys.range 2.
+// Before returning, the function pushes the result onto the
+// stack, so that, from the point of view of the callee, the
+// result is at the top of the stack.
+//
+function Sys.range 2
+    // Your implementation goes here.
+
+    push argument 1 
+
+    push constant 1 
+
+    gt 
+
+    if-goto NOTZERO
+
+    push constant 0 
+
+    goto END 
+
+label NOTZERO
+
+    push argument 0 
+
+    pop pointer 0 
+
+    push this 0 
+
+    pop local 0 
+
     push local 0
+
+    pop local 1 
+
+label minloop 
+
+    push pointer 0
+
+    push constant 1 
+
+    add
+
+    pop pointer 0 
+
+    push pointer 0
+
+    push argument 0 
+
     push argument 1
-    eq
-    if-goto SHIFT_COMPLETE  // if i == y, exit loop
 
-    push local 1
-    push local 1
-    add
-    pop local 1  // result *= 2 (shift left by 1)
+    add 
+
+    eq 
+
+    if-goto beforemaxloop
 
     push local 0
-    push constant 1
-    add
-    pop local 0  // i++
 
-    goto SHIFT_ITERATE
+    push this 0
 
-label SHIFT_COMPLETE
-    push local 1
-    return
+    call Sys.min 2
 
-label NO_SHIFT_NEEDED
-    push argument 0
-    return
+    pop local 0 
 
-// Compute parity function: result = parity bit of input
-function Sys.computeParity 2
-    push constant 0
-    pop local 0  // parity = 0
-    push constant 0
-    pop local 1  // i = 0 (bit position)
+    goto minloop 
 
-label PARITY_ITERATE
-    push local 1
-    push constant 15
-    eq
-    if-goto PARITY_DONE  // if i == 15, exit loop
 
-    push constant 1
-    push local 1
-    call Sys.shiftLeft 2  // bitmask = 1 << i
-    push argument 0
-    and  // ithBit = input & bitmask
+label beforemaxloop 
 
-    push constant 0
-    eq
-    not
-    if-goto FLIP_PARITY  // if ithBit != 0, flip parity
+    push argument 0 
 
-    push local 1
-    push constant 1
-    add
-    pop local 1  // i++
-    goto PARITY_ITERATE
+    pop pointer 0 
 
-label FLIP_PARITY
-    push local 0
-    push constant 1
-    call Sys.xor 2  // parity ^= 1
-    pop local 0
+label maxloop 
 
-    push local 1
-    push constant 1
-    add
-    pop local 1  // i++
-    goto PARITY_ITERATE
+    push pointer 0 
 
-label PARITY_DONE
-    push local 0
-    return
+    push constant 1 
 
-// Encode function: encode input with parity bit
-function Sys.encode 0
-    push argument 0
-    call Sys.computeParity 1  // compute parity bit
+    add 
 
-    push constant 1
-    eq
-    if-goto SET_HIGH_BIT  // if parity == 1, set high bit
+    pop pointer 0 
+
+    push pointer 0 
 
     push argument 0
-    push constant 32767
-    and  // clear high bit
-    return
 
-label SET_HIGH_BIT
-    push argument 0
-    push constant 32767
-    not
-    or  // set high bit
-    return
+    push argument 1 
 
-// Initialization function
+    add 
+
+    eq 
+
+    if-goto RangeEnd
+
+    push local 1 
+
+    push this 0 
+
+    call Sys.max 2 
+
+    pop local 1 
+
+    goto maxloop 
+
+label RangeEnd
+
+    push local 1 
+
+    push local 0 
+
+    sub 
+
+label END 
+
+return
+
+    
+
+
+
+// The emulator will start executing from here. You can modify
+// the code below while testing and debugging your code, but
+// please revert your changes before submitting to Gradescope;
+// otherwise, your submission will most likely fail all tests.
+//
+// A better way to test your code is to use the supplied file
+//   Sys.tst
+// with the virtual machine emulator. Please do not submit this
+// file to Gradescope, as this will cause your submission to be
+// rejected.
+//
 function Sys.init 0
-    call Sys.encode 1
-
-label MAIN_LOOP
-    goto MAIN_LOOP
+    call Sys.range 2
+label WHILE
+    goto WHILE
